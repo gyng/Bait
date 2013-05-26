@@ -272,7 +272,7 @@
 
     function Player(x, y) {
         Entity.call(this, x, y);
-        this.appearance = "rgb(0, 255, 0)";
+        this.appearance = "rgb(143, 199, 60)";
     }
     Player.prototype = new Entity();
     Player.prototype.constructor = Player;
@@ -280,16 +280,17 @@
         var offsetX;
         var offsetY;
 
+        // Have player "hide" behind cursor and "shiver"
         if (cursor.y < $(window).height() / 2) {
-            offsetY = this.y + this.ySize / 2 + Math.random() * 10;
+            offsetY = this.y + this.ySize / 2 + Math.random() * 15;
         } else {
-            offsetY = this.y - this.ySize / 2 - Math.random() * 10;
+            offsetY = this.y - this.ySize / 2 - Math.random() * 15;
         }
 
         if (cursor.x < $(window).width() / 2) {
-            offsetX = (this.x + this.xSize / 2 + Math.random() * 10);
+            offsetX = (this.x + this.xSize / 2 + Math.random() * 15);
         } else {
-            offsetX = (this.x - this.xSize / 2 - Math.random() - 10);
+            offsetX = (this.x - this.xSize / 2 - Math.random() - 15);
         }
 
         var dX = (cursor.x - offsetX) * 0.1;
@@ -302,14 +303,14 @@
 
     function Chaser(x, y) {
         Entity.call(this, x, y);
-        this.appearance = "rgb(255, 0, 0)";
+        this.appearance = "rgb(217, 65, 30)";
         this.speedFactor = 1;
     }
     Chaser.prototype = new Entity();
     Chaser.prototype.constructor = Chaser;
     Chaser.prototype.step = function () {
         this.speedFactor *= 1.005;
-        this.speedFactor = Math.min(this.speedFactor, 16);
+        this.speedFactor = Math.min(this.speedFactor, 17);
         var dX = (game.player.x - this.x) * 0.01 * this.speedFactor;
         var dY = (game.player.y - this.y) * 0.01 * this.speedFactor;
         this.x += dX;
@@ -333,16 +334,22 @@
 
     function Minder(x, y) {
         Entity.call(this, x, y);
-        this.appearance = "rgb(255, 150, 0)";
+        this.appearance = "rgb(243, 156, 18)";
+        this.xSize = 10;
+        this.ySize = 30;
+        this.speedFactor = 1;
     }
     Minder.prototype = new Entity();
     Minder.prototype.constructor = Minder;
     Minder.prototype.step = function () {
         this.faceObject(game.player);
 
-        if (this.distanceTo(game.player) < 250) {
+        if (this.distanceTo(game.player) < 350) {
             this.x += (game.player.x - this.x) * 0.05;
             this.y += (game.player.y - this.y) * 0.05;
+            this.speedFactor *= 1.005;
+        } else {
+            this.speedFactor = 1;
         }
 
         if (this.collidesWith(game.player, 15)) {
@@ -363,7 +370,7 @@
     function Antimatter(x, y) {
         Entity.call(this, x, y);
         this.antimatterIndex = null;
-        this.appearance = "rgb(0, 0, 255)";
+        this.appearance = "rgb(52, 152, 219)";
     }
     Antimatter.prototype = new Entity();
     Antimatter.prototype.constructor = Antimatter;
