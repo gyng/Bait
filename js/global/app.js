@@ -253,7 +253,7 @@
         if (this.collidesWith(game.player, 15)) {
             this.markedForDeletion = true;
             game.lives -= 1;
-            game.hitEffect();
+            game.hitEffect(this.appearance);
         }
 
         for (var i = 0; i < game.antimatter.length; i++) {
@@ -281,6 +281,7 @@
         if (this.collidesWith(game.player, 15)) {
             this.markedForDeletion = true;
             game.lives -= 1;
+            game.hitEffect(this.appearance);
         }
 
         for (var i = 0; i < game.antimatter.length; i++) {
