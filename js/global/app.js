@@ -13,9 +13,7 @@
     var cursor = new Cursor();
 
     $(document).ready(function () {
-        var canvas = document.getElementById("view");
-        game = new Game(canvas);
-        game.start();
+        setup();
     });
 
     $(window).resize(function () {
@@ -27,26 +25,27 @@
         cursor.y = e.pageY;
     });
 
-    function Game(canvas) {
-        this.canvas = null;
-        this.context = null;
+    function setup() {
+        var canvas = document.getElementById("view");
+        var menu = new Menu(document.getElementById("menu"));
+        game = new Game(canvas, menu);
+    }
+
+    function Game(canvas, menu) {
         this.player = null;
         this.entities = [];
         this.antimatter = [];
         this.lives = null;
+        this.pause = true;
+        this.gameOver = false;
 
+        this.menu = menu;
         this.canvas = canvas;
         this.context = this.canvas.getContext("2d");
         this.width = $(window).width();
         this.height = $(window).height();
         this.setSize(this.width, this.height);
         this.createPlayer(this.width / 2, this.height / 2);
-    }
-
-    Game.prototype.start = function (rate) {
-        if (typeof rate === "undefined") { rate = 1000 / 60; }
-        this.frame = 0;
-        this.lives = 3;
 
         window.requestAnimFrame = (function () {
             return window.requestAnimationFrame ||
@@ -59,8 +58,31 @@
             };
         })();
 
+        window.cancelAnimFrame = (function () {
+            return window.cancelAnimationFrame ||
+            window.webkitCamcelAnimationFrame ||
+            window.mozCancelAnimationFrame ||
+            window.oCancelAnimationFrame ||
+            window.msCancelAnimationFrame ||
+            function (callback) {
+                window.clearInterval(callback);
+            };
+        })();
+    }
+
+    Game.prototype.start = function (rate) {
+        if (typeof rate === "undefined") { rate = 1000 / 60; }
+        this.frame = 0;
+        this.lives = 3;
+
+        // Statistics
+        this.statistics = {};
+        this.statistics.chasers_killed = 0;
+        this.statistics.minders_killed = 0;
+
+        this.pause = false;
         this.step();
-        window.setInterval(this.debug.bind(this), 1000);
+        this.debugHandle = window.setInterval(this.debug.bind(this), 1000);
     };
 
     Game.prototype.setSize = function (width, height) {
@@ -75,25 +97,30 @@
 
     Game.prototype.step = function () {
         this.fps++;
-        this.frame++;
-        this.spawnEntities();
-        this.entities.forEach(this.stepEntity.bind(this));
-        this.entities.forEach(this.cleanEntity.bind(this));
-        this.antimatter.forEach(this.cleanEntity.bind(this));
 
-        // Render
-        // Optimise clearing: http://stackoverflow.com/a/6722031
-        //this.context.save();
-        //this.context.setTransform(1, 0, 0, 1, 0, 0);
-        //this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        //this.context.restore();
-        // this.context.fillStyle = "rgba(180, 180, 180, " + 0.2 + ")"; // Trails
-        this.context.fillStyle = "rgba(240, 240, 240, " + 0.1 + ")"; // Trails
-        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        if (!this.pause) {
+            this.frame++;
+            this.spawnEntities();
+            this.entities.forEach(this.stepEntity.bind(this));
+            this.entities.forEach(this.cleanEntity.bind(this));
+            this.antimatter.forEach(this.cleanEntity.bind(this));
 
-        this.drawCount = 0;
-        this.entities.forEach(this.drawEntity.bind(this));
-        window.requestAnimFrame(this.step.bind(this));
+            this.checkLossConditions();
+
+            // Render
+            // Optimise clearing: http://stackoverflow.com/a/6722031
+            // this.context.save();
+            // this.context.setTransform(1, 0, 0, 1, 0, 0);
+            // this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            // this.context.restore();
+            // this.context.fillStyle = "rgba(180, 180, 180, " + 0.2 + ")"; // Trails
+            this.context.fillStyle = "rgba(240, 240, 240, 0.1)"; // Trails
+            this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+            this.drawCount = 0;
+            this.entities.forEach(this.drawEntity.bind(this));
+            this.animHandle = window.requestAnimFrame(this.step.bind(this));
+        }
     };
 
     Game.prototype.hitEffect = function (style) {
@@ -120,7 +147,7 @@
             this.context.rotate(element.rotation);
             this.context.beginPath();
             this.context.fillStyle = element.appearance;
-            this.context.fillRect(-10, -7, 20, 15);
+            this.context.fillRect(-1 * element.xSize / 2, -1 * element.ySize / 2, element.xSize, element.ySize);
             this.context.closePath();
             this.context.restore();
         }
@@ -171,6 +198,22 @@
         }
     };
 
+    Game.prototype.checkLossConditions = function () {
+        if (!this.gameOver) {
+            if (this.lives <= 0) {
+                // this.pause = true;
+                this.gameOver = true;
+                this.menu.gameOver(this.frame, this.statistics);
+            }
+        }
+    };
+
+    Game.prototype.teardown = function () {
+        window.clearInterval(this.debugHandle);
+        window.cancelAnimFrame(this.animHandle);
+        this.entities = null;
+    };
+
     Game.prototype.debug = function () {
         $("#debug").html(
             "<h3>Make the red and the orange shit hit the blue shit but not the green shit</h3>" +
@@ -178,9 +221,32 @@
             "<p>" + this.entities.length + " entities</p>" +
             "<p>" + this.frame + " frame</p>" +
             "<p>" + this.drawCount + " draw count</p>" +
-            "<p>" + this.lives + " lives </p>"
+            "<p>" + this.lives + " lives </p>" +
+            "<p>" + this.statistics.chasers_killed + " chasers killed</p>" +
+            "<p>" + this.statistics.minders_killed + " minders killed</p>"
         );
         this.fps = 0;
+    };
+
+    function Menu(menu) {
+        this.menu = menu;
+        $(".start-button", menu).click(function () {
+            game.start();
+            $(".start-menu", menu).addClass("hidden");
+        });
+
+        $(".restart-button", menu).click(function () {
+            game.teardown();
+            setup();
+            game.start();
+            $(".gameover-menu").addClass("hidden");
+        });
+    }
+    Menu.prototype.gameOver = function (score, statistics) {
+        $("#score", this.menu).text(score);
+        $("#chasers_killed", this.menu).text(statistics.chasers_killed + " " + (statistics.chasers_killed === 1 ? "chaser" : "chasers"));
+        $("#minders_killed", this.menu).text(statistics.minders_killed + " " + (statistics.minders_killed === 1 ? "minder" : "minders"));
+        $(".gameover-menu", this.menu).removeClass("hidden");
     };
 
     function Entity(x, y) {
@@ -260,6 +326,7 @@
             if (this.collidesWith(game.antimatter[i], 25)) {
                 this.markedForDeletion = true;
                 game.antimatter[i].markedForDeletion = true;
+                game.statistics.chasers_killed++;
             }
         }
     };
@@ -288,6 +355,7 @@
             if (this.collidesWith(game.antimatter[i], 25)) {
                 this.markedForDeletion = true;
                 game.antimatter[i].markedForDeletion = true;
+                game.statistics.minders_killed++;
             }
         }
     };

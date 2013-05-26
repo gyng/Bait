@@ -7,11 +7,77 @@ html, body {
 }
 
 canvas {
-    background-color: #abc;
+    cursor: crosshair;
+    background-color: #CCC;
+}
+
+.hidden {
+    display: none;
+}
+
+#menu {
+    width: 35%;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 20%;
+    margin: auto;
+}
+
+#menu .title {
+    width: 40%;
+    margin: 0 auto 50px auto;
+}
+
+#menu .title img {
+    width: 100%;
+}
+
+#menu .button {
+    width: 50%;
+    padding: 20px;
+    margin: 0 auto;
+    text-align: center;
+    font-family: Georgia, serif;
+    font-size: 250%;
+    color: #FFFFFF;
+    cursor: default;
+}
+
+#menu .start-button {
+    background-color: #C0392B;
+}
+
+#menu .start-button:hover {
+    background-color: #E74C3C;
+}
+
+#menu .restart-button {
+    background-color: #C0392B;
+}
+
+#menu .restart-button:hover {
+    background-color: #E74C3C;
+}
+
+#menu .gameover-menu {
+    opacity: 0.2;
+    transition: 2s;
+}
+
+#menu .gameover-menu:hover {
+    opacity: 1;
+    transition: 2s;
+}
+
+#menu .score-text {
+    font-family: Georgia, serif;
+    text-align: center;
 }
 
 #debug {
     position: absolute;
     top: 15px;
     left: 15px;
+    font-family: Georgia, serif;
 }

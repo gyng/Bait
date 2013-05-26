@@ -6,7 +6,20 @@
         <link rel="stylesheet" href="css/main.css">
     </head>
     <body>
-        <div id="debug">debug</div>
+        <div id="debug"></div>
+        <div id="menu">
+            <div class="start-menu">
+                <div class="title"><img src="assets/title.svg" alt="Bait"></div>
+                <div class="start-button button">Start</div>
+            </div>
+
+            <div class="gameover-menu hidden">
+                <div class="title"><img src="assets/title.svg" alt="Bait"></div>
+                <div class="restart-button button">Restart</div>
+                <p class="score-text">You survived for <span id="score"></span> frames.</p>
+                <p class="score-text">During this time you killed <span id="chasers_killed"></span> and <span id="minders_killed"</span>
+            </div>
+        </div>
         <canvas id="view"></canvas>
         <script src="js/global/jquery-2.0.1.min.js"></script>
         <script src="js/global/app.js"></script>
