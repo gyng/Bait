@@ -123,10 +123,26 @@
         }
     };
 
-    Game.prototype.hitEffect = function (style) {
+    Game.prototype.flashScreen = function (style) {
         if (typeof style === "undefined") { style = "rgba(0, 0, 0, 1)"; }
         this.context.fillStyle = style;
         this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    };
+
+    Game.prototype.drawCircle = function (x, y, radius, strokeStyle) {
+        if (typeof strokeStyle === "undefined") { strokeStyle = "rgba(0, 0, 0, 1)"; }
+        if (typeof radius === "undefined") { radius = 25; }
+        this.context.fillStyle = strokeStyle;
+        this.context.arc(x, y, radius, 0, Math.PI * 2, false);
+        this.context.fill();
+    };
+
+    Game.prototype.drawExplodeEffect = function (x, y, initialRadius, strokeStyle, ripples) {
+        if (ripples === 0 || typeof ripples !== "number") { return; }
+        this.drawCircle(x, y, initialRadius, strokeStyle);
+        setTimeout(function () {
+            this.drawExplodeEffect(x, y, initialRadius * 1.1, strokeStyle, ripples - 1);
+        }.bind(this), 20);
     };
 
     Game.prototype.stepEntity = function (element/*, index, array*/) {
@@ -320,7 +336,7 @@
         if (this.collidesWith(game.player, 15)) {
             this.markedForDeletion = true;
             game.lives -= 1;
-            game.hitEffect(this.appearance);
+            game.flashScreen(this.appearance);
         }
 
         for (var i = 0; i < game.antimatter.length; i++) {
@@ -328,6 +344,8 @@
                 this.markedForDeletion = true;
                 game.antimatter[i].markedForDeletion = true;
                 game.statistics.chasers_killed++;
+                game.drawExplodeEffect(this.x, this.y, 25, this.appearance, 3);
+                // game.drawCircle(this.x, this.y, 25, this.appearance);
             }
         }
     };
@@ -345,8 +363,8 @@
         this.faceObject(game.player);
 
         if (this.distanceTo(game.player) < 350) {
-            this.x += (game.player.x - this.x) * 0.05;
-            this.y += (game.player.y - this.y) * 0.05;
+            this.x += (game.player.x - this.x) * 0.05 * this.speedFactor;
+            this.y += (game.player.y - this.y) * 0.05 * this.speedFactor;
             this.speedFactor *= 1.005;
         } else {
             this.speedFactor = 1;
@@ -355,7 +373,7 @@
         if (this.collidesWith(game.player, 15)) {
             this.markedForDeletion = true;
             game.lives -= 1;
-            game.hitEffect(this.appearance);
+            game.flashScreen(this.appearance);
         }
 
         for (var i = 0; i < game.antimatter.length; i++) {
@@ -363,6 +381,7 @@
                 this.markedForDeletion = true;
                 game.antimatter[i].markedForDeletion = true;
                 game.statistics.minders_killed++;
+                game.drawExplodeEffect(this.x, this.y, 25, this.appearance, 4);
             }
         }
     };
