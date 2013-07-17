@@ -20,9 +20,9 @@
         game.setSize($(window).width(), $(window).height());
     });
 
-    $(document).on('mousemove', function (e) {
-        cursor.x = e.pageX;
-        cursor.y = e.pageY;
+    $(document).on('mousemove touchmove', function (e) {
+        cursor.x = e.pageX || e.originalEvent.touches[0].pageX;
+        cursor.y = e.pageY || e.originalEvent.touches[0].pageY;
     });
 
     function setup() {
